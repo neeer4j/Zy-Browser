@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zy Browser</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="devtools/ui/devtools.css">
 </head>
 
 <body>
@@ -141,6 +142,9 @@
                         <button class="nav-btn" id="btn-tools-toggle" title="Show Tools">
                             🛠️
                         </button>
+                        <button class="nav-btn" id="btn-css-panel" title="CSS Overrides">
+                            🎨
+                        </button>
                     </div>
                 </nav>
             </div>
@@ -209,9 +213,66 @@
                 </div>
             </div>
 
+            <!-- CSS OVERRIDES PANEL -->
+            <div class="css-panel" id="css-panel" style="display: none;">
+                <div class="css-panel-header">
+                    <span>CSS Overrides</span>
+                    <div class="css-panel-controls">
+                        <label class="css-toggle">
+                            <input type="checkbox" id="css-enabled" checked>
+                            <span class="css-toggle-slider"></span>
+                        </label>
+                        <button id="btn-close-css" class="icon-btn" title="Close">×</button>
+                    </div>
+                </div>
+                <div class="css-panel-body">
+                    <textarea id="css-editor"
+                        placeholder="/* Write custom CSS here */\n\nbody {\n  background: #000 !important;\n}"></textarea>
+                </div>
+                <div class="css-panel-footer">
+                    <span id="css-status">Ready</span>
+                    <button id="btn-apply-css" class="css-apply-btn">Apply</button>
+                </div>
+            </div>
+
         </div>
     </div>
+
+    <!-- DEVELOPER TOOLS PANEL -->
+    <div class="devtools-panel" id="devtools-panel" style="display: none;"></div>
+
+    <!-- Core Scripts -->
     <script src="renderer.js"></script>
+
+    <!-- DevTools Core -->
+    <script src="devtools/core/DevToolsManager.js"></script>
+    <script src="devtools/core/InjectionBridge.js"></script>
+
+    <!-- DevTools Modules -->
+    <script src="devtools/tools/StorageExplorer.js"></script>
+    <script src="devtools/tools/ErrorTimeline.js"></script>
+    <script src="devtools/tools/NetworkSnapshots.js"></script>
+    <script src="devtools/tools/DOMMutationTracker.js"></script>
+    <script src="devtools/tools/PerformanceHeatmap.js"></script>
+
+    <!-- DevTools Initialization -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const panel = document.getElementById('devtools-panel');
+            window.DevToolsManager.init(panel);
+
+            // Toggle with F12 or button
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'F12') {
+                    e.preventDefault();
+                    window.DevToolsManager.toggle();
+                }
+            });
+
+            // Make TabManager available globally for tools
+            window.TabManager = TabManager;
+        });
+    </script>
 </body>
 
 </html>

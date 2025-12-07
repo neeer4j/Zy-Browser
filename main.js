@@ -10,10 +10,11 @@
  * - Manage developer tools toggle
  */
 
-const { app, BrowserWindow, ipcMain, session, desktopCapturer, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, session, desktopCapturer, dialog, protocol, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const url = require('url');
 
 // ============================================
 // CONFIGURATION
@@ -33,6 +34,30 @@ const MIN_HEIGHT = 300;
 
 // Disable security warnings (we are handling them)
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+
+// ============================================
+// CUSTOM PROTOCOL (zy://)
+// ============================================
+
+// Register zy:// as a privileged scheme before app is ready
+protocol.registerSchemesAsPrivileged([
+    {
+        scheme: 'zy',
+        privileges: {
+            standard: true,
+            secure: true,
+            supportFetchAPI: true,
+            corsEnabled: true
+        }
+    }
+]);
+
+// Internal pages mapping
+const ZY_PAGES = {
+    'home': 'home.html',
+    'settings': 'settings.html',
+    'newtab': 'home.html'
+};
 
 // ============================================
 // WINDOW MANAGEMENT
@@ -352,6 +377,22 @@ function setupSecurityHandlers() {
 
 // Create window when Electron is ready
 app.whenReady().then(() => {
+    // Register zy:// protocol handler
+    protocol.handle('zy', (request) => {
+        const urlObj = new URL(request.url);
+        const pageName = urlObj.hostname; // e.g., 'home', 'settings'
+
+        // Get the file name from the mapping
+        const fileName = ZY_PAGES[pageName];
+        if (fileName) {
+            const filePath = path.join(__dirname, 'renderer', fileName);
+            return net.fetch(url.pathToFileURL(filePath).href);
+        }
+
+        // Return 404 for unknown zy:// pages
+        return new Response('Not Found', { status: 404 });
+    });
+
     setupSecurityHandlers();
     createWindow();
     setupIpcHandlers();

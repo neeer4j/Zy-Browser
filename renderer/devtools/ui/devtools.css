@@ -1,0 +1,617 @@
+/**
+ * DevTools Panel Styles
+ * Minimal black & white theme matching Zy Browser
+ */
+
+/* Main Panel Container */
+.devtools-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 300px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    z-index: 200;
+    font-size: 12px;
+}
+
+.devtools-toolbar {
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.devtools-tab {
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.15s;
+}
+
+.devtools-tab:hover {
+    background: var(--bg-tab);
+    color: var(--text-primary);
+}
+
+.devtools-tab.active {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+}
+
+.devtools-content {
+    flex: 1;
+    overflow: auto;
+    padding: 8px;
+}
+
+/* Common Tool Styles */
+.devtools-btn {
+    padding: 5px 10px;
+    background: var(--bg-tab);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.15s;
+}
+
+.devtools-btn:hover {
+    background: var(--accent-hover);
+    color: var(--bg-primary);
+}
+
+.devtools-btn.active {
+    background: #4CAF50;
+    border-color: #4CAF50;
+    color: white;
+}
+
+.devtools-btn.primary {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+}
+
+.empty-state {
+    color: var(--text-muted);
+    text-align: center;
+    padding: 24px;
+    font-style: italic;
+}
+
+.empty-state.good {
+    color: #4CAF50;
+}
+
+/* Storage Explorer */
+.storage-explorer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.storage-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.storage-tab {
+    padding: 6px 12px;
+    background: var(--bg-tab);
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.storage-tab.active {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+}
+
+.storage-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.storage-table-wrapper {
+    flex: 1;
+    overflow: auto;
+}
+
+.storage-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.storage-table th,
+.storage-table td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.storage-table th {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.storage-value-input {
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-primary);
+    padding: 4px;
+    border-radius: 3px;
+}
+
+.storage-value-input:focus {
+    border-color: var(--accent-primary);
+    outline: none;
+}
+
+.action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 12px;
+}
+
+.storage-add {
+    display: flex;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-subtle);
+    margin-top: 8px;
+}
+
+.storage-add input {
+    flex: 1;
+    padding: 6px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    border-radius: 4px;
+}
+
+/* Error Timeline */
+.error-timeline {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.error-toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.error-count {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.error-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.error-filters label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.error-list {
+    flex: 1;
+    overflow: auto;
+}
+
+.error-item {
+    padding: 8px;
+    margin-bottom: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    border-left: 3px solid #666;
+}
+
+.error-item.error {
+    border-left-color: #e74c3c;
+}
+
+.error-item.warning {
+    border-left-color: #f1c40f;
+}
+
+.error-item.uncaught {
+    border-left-color: #9b59b6;
+}
+
+.error-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.error-type {
+    font-weight: 500;
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+.error-time {
+    color: var(--text-muted);
+    font-size: 10px;
+}
+
+.error-message {
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+.error-location {
+    color: var(--text-muted);
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+.error-stack {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    overflow-x: auto;
+    white-space: pre;
+    background: var(--bg-primary);
+    padding: 6px;
+    border-radius: 3px;
+}
+
+/* Network Snapshots */
+.network-snapshots {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.network-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.network-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.network-list {
+    flex: 1;
+    overflow: auto;
+}
+
+.network-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.network-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.network-item.error {
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.net-method {
+    font-weight: 600;
+    font-size: 10px;
+    width: 40px;
+}
+
+.net-method.GET {
+    color: #2ecc71;
+}
+
+.net-method.POST {
+    color: #f1c40f;
+}
+
+.net-method.PUT {
+    color: #3498db;
+}
+
+.net-method.DELETE {
+    color: #e74c3c;
+}
+
+.net-status {
+    font-weight: 500;
+    width: 35px;
+}
+
+.net-status.ok {
+    color: #2ecc71;
+}
+
+.net-status.error {
+    color: #e74c3c;
+}
+
+.net-url {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-secondary);
+}
+
+.net-time {
+    color: var(--text-muted);
+    font-size: 11px;
+    width: 50px;
+    text-align: right;
+}
+
+.network-detail {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: var(--bg-tertiary);
+}
+
+.detail-content {
+    flex: 1;
+    overflow: auto;
+    padding: 8px;
+}
+
+.detail-row {
+    margin-bottom: 8px;
+}
+
+.detail-row.error {
+    color: #e74c3c;
+}
+
+.response-body {
+    background: var(--bg-primary);
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    overflow: auto;
+    max-height: 150px;
+}
+
+/* DOM Mutations */
+.mutation-tracker {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.mutation-toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.mutation-count {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.mutation-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.mutation-list {
+    flex: 1;
+    overflow: auto;
+}
+
+.mutation-item {
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    border-left: 3px solid #3498db;
+}
+
+.mutation-item.attributes {
+    border-left-color: #9b59b6;
+}
+
+.mutation-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.mutation-type {
+    font-weight: 500;
+}
+
+.mutation-time {
+    color: var(--text-muted);
+}
+
+.mutation-target {
+    color: var(--text-primary);
+    font-family: monospace;
+    font-size: 11px;
+}
+
+.mutation-attr {
+    color: #9b59b6;
+    font-size: 10px;
+    margin-top: 2px;
+}
+
+.mutation-added {
+    color: #2ecc71;
+    font-size: 10px;
+}
+
+.mutation-removed {
+    color: #e74c3c;
+    font-size: 10px;
+}
+
+/* Performance Heatmap */
+.perf-heatmap {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto;
+}
+
+.perf-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.perf-summary {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.perf-card {
+    flex: 1;
+    background: var(--bg-tertiary);
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.perf-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.perf-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.perf-section-title {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin: 8px 0;
+    font-weight: 500;
+}
+
+.perf-waterfall {
+    margin-bottom: 16px;
+}
+
+.waterfall-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    height: 20px;
+}
+
+.waterfall-name {
+    width: 120px;
+    font-size: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-secondary);
+}
+
+.waterfall-bar-container {
+    flex: 1;
+    height: 12px;
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    position: relative;
+}
+
+.waterfall-bar {
+    position: absolute;
+    height: 100%;
+    border-radius: 2px;
+    min-width: 2px;
+}
+
+.waterfall-time {
+    width: 50px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.slow-type {
+    font-size: 9px;
+    padding: 2px 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    text-transform: uppercase;
+}
+
+.slow-name {
+    flex: 1;
+    font-size: 11px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.slow-time {
+    font-size: 11px;
+    color: #e74c3c;
+    font-weight: 500;
+}

@@ -52,7 +52,7 @@ const TabManager = {
     /**
      * Create a new tab and its webview
      */
-    createTab: (url = 'home.html', activate = true) => {
+    createTab: (url = 'zy://home', activate = true) => {
         const tabId = 'tab-' + Date.now();
         const tabData = { id: tabId, url, title: 'New Tab', isLoading: true };
         state.tabs.push(tabData);
@@ -405,7 +405,149 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Systems
     SidebarManager.init();
+    CSSOverridesManager.init();
 
     // Create initial tab
     TabManager.createTab();
 });
+
+// ============================================
+// CSS OVERRIDES MANAGER
+// Injects custom CSS into active webview
+// ============================================
+
+const CSSOverridesManager = {
+    panel: null,
+    editor: null,
+    toggle: null,
+    status: null,
+    currentCSSKey: null, // Unique key per webview session
+
+    init: () => {
+        CSSOverridesManager.panel = document.getElementById('css-panel');
+        CSSOverridesManager.editor = document.getElementById('css-editor');
+        CSSOverridesManager.toggle = document.getElementById('css-enabled');
+        CSSOverridesManager.status = document.getElementById('css-status');
+
+        // Panel toggle button
+        document.getElementById('btn-css-panel')?.addEventListener('click', () => {
+            CSSOverridesManager.togglePanel();
+        });
+
+        // Close button
+        document.getElementById('btn-close-css')?.addEventListener('click', () => {
+            CSSOverridesManager.panel.style.display = 'none';
+        });
+
+        // Apply button
+        document.getElementById('btn-apply-css')?.addEventListener('click', () => {
+            CSSOverridesManager.applyCSS();
+        });
+
+        // Toggle enable/disable
+        CSSOverridesManager.toggle?.addEventListener('change', () => {
+            if (CSSOverridesManager.toggle.checked) {
+                CSSOverridesManager.applyCSS();
+            } else {
+                CSSOverridesManager.removeCSS();
+            }
+        });
+
+        // Load saved CSS when switching tabs
+        document.addEventListener('tab-switched', () => {
+            CSSOverridesManager.loadForCurrentTab();
+        });
+
+        // Keyboard shortcut (Ctrl+Shift+C to toggle panel)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                e.preventDefault();
+                CSSOverridesManager.togglePanel();
+            }
+        });
+    },
+
+    togglePanel: () => {
+        const isVisible = CSSOverridesManager.panel.style.display !== 'none';
+        CSSOverridesManager.panel.style.display = isVisible ? 'none' : 'flex';
+        if (!isVisible) {
+            CSSOverridesManager.loadForCurrentTab();
+            CSSOverridesManager.editor.focus();
+        }
+    },
+
+    getStorageKey: () => {
+        const webview = TabManager.getActiveWebview();
+        if (!webview) return null;
+        try {
+            const url = new URL(webview.getURL());
+            return `zy-css-${url.hostname}`;
+        } catch {
+            return `zy-css-${state.activeTabId}`;
+        }
+    },
+
+    loadForCurrentTab: () => {
+        const key = CSSOverridesManager.getStorageKey();
+        if (!key) return;
+
+        const saved = localStorage.getItem(key);
+        CSSOverridesManager.editor.value = saved || '';
+        CSSOverridesManager.currentCSSKey = key;
+
+        // Auto-apply if enabled and has content
+        if (saved && CSSOverridesManager.toggle.checked) {
+            CSSOverridesManager.applyCSS();
+        }
+    },
+
+    saveCSS: () => {
+        const key = CSSOverridesManager.getStorageKey();
+        if (!key) return;
+
+        const css = CSSOverridesManager.editor.value;
+        if (css.trim()) {
+            localStorage.setItem(key, css);
+        } else {
+            localStorage.removeItem(key);
+        }
+    },
+
+    applyCSS: async () => {
+        const webview = TabManager.getActiveWebview();
+        if (!webview) {
+            CSSOverridesManager.status.textContent = 'No active tab';
+            return;
+        }
+
+        const css = CSSOverridesManager.editor.value.trim();
+        if (!css) {
+            CSSOverridesManager.status.textContent = 'No CSS to apply';
+            return;
+        }
+
+        try {
+            // Remove existing custom CSS first
+            await CSSOverridesManager.removeCSS();
+
+            // Insert new CSS
+            await webview.insertCSS(css);
+
+            CSSOverridesManager.saveCSS();
+            CSSOverridesManager.status.textContent = 'Applied ✓';
+
+            setTimeout(() => {
+                CSSOverridesManager.status.textContent = 'Ready';
+            }, 2000);
+        } catch (err) {
+            CSSOverridesManager.status.textContent = 'Error: ' + err.message;
+        }
+    },
+
+    removeCSS: async () => {
+        // Note: Electron's webview doesn't have a removeCSS method
+        // The CSS persists until page reload. For full removal, reload the page.
+        // This is a limitation of the webview API.
+        CSSOverridesManager.status.textContent = 'CSS will clear on reload';
+    }
+};
