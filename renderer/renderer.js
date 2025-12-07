@@ -62,6 +62,7 @@ const TabManager = {
         tabEl.className = 'tab';
         tabEl.id = `btn-${tabId}`;
         tabEl.innerHTML = `
+            <div class="tab-favicon">🌐</div>
             <span class="tab-title">New Tab</span>
             <button class="tab-close" title="Close Tab">×</button>
         `;
