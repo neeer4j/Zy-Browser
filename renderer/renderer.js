@@ -1,349 +1,334 @@
 /**
- * Zy Browser - Renderer Script
- * 
- * This script handles all UI interactions in the browser window.
- * It manages navigation controls, URL input, and webview interactions.
- * 
- * Key Components:
- * - Navigation button handlers (back, forward, reload)
- * - URL bar input and submission
- * - Webview event listeners (loading, navigation, title updates)
- * - Developer tools toggle
- * - Keyboard shortcuts
+ * Zy Browser - Renderer Script (Multi-Tab & Productivity Edition)
  */
 
 // ============================================
-// DOM ELEMENT REFERENCES
-// Cache DOM elements for better performance
-// ============================================
-
-const elements = {
-    // Navigation buttons
-    btnBack: document.getElementById('btn-back'),
-    btnForward: document.getElementById('btn-forward'),
-    btnReload: document.getElementById('btn-reload'),
-    btnDevTools: document.getElementById('btn-devtools'),
-
-    // URL input
-    urlInput: document.getElementById('url-input'),
-
-    // Webview (the actual browser content)
-    webview: document.getElementById('webview'),
-
-    // Loading indicator
-    loadingBar: document.getElementById('loading-bar')
-};
-
-// ============================================
-// STATE
-// Track the current state of the browser
+// CONFIGURATION & STATE
 // ============================================
 
 const state = {
-    isDevToolsOpen: false,
-    isLoading: false,
-    isDevPanelOpen: false,
+    tabs: [], // Array of { id, url, title, isLoading }
+    activeTabId: null,
+    isSplitView: false,
+    splitTabId: null,
+    isSidebarOpen: true,
     metricsInterval: null
 };
 
-// ============================================
-// URL UTILITIES
-// Functions for URL validation and formatting
-// ============================================
+const elements = {
+    tabBar: document.getElementById('tab-bar'),
+    viewsContainer: document.getElementById('views-container'),
+    urlInput: document.getElementById('url-input'),
+    btnBack: document.getElementById('btn-back'),
+    btnForward: document.getElementById('btn-forward'),
+    btnReload: document.getElementById('btn-reload'),
+    btnNewTab: document.getElementById('btn-new-tab'),
+    btnSplitView: document.getElementById('btn-split-view'),
+    loadingBar: document.getElementById('loading-bar'),
 
-/**
- * Checks if a string is a valid URL
- * @param {string} string - The string to check
- * @returns {boolean} True if valid URL
- */
-function isValidUrl(string) {
-    try {
-        const url = new URL(string);
-        return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-        return false;
-    }
-}
+    // Sidebar
+    sidebar: document.getElementById('sidebar'),
+    btnToggleSidebar: document.getElementById('btn-toggle-sidebar'),
+    sidebarTabs: document.querySelectorAll('.sidebar-tab'),
+    toolViews: document.querySelectorAll('.tool-view'),
 
-/**
- * Formats user input into a proper URL
- * - Adds https:// if no protocol specified
- * - Converts search terms to Google search
- * 
- * @param {string} input - Raw user input
- * @returns {string} Formatted URL
- */
-function formatUrl(input) {
-    // Trim whitespace
-    input = input.trim();
+    // Dev Tools
+    devPanel: document.getElementById('dev-panel'),
+    btnDevTools: document.getElementById('btn-devtools'),
+    btnToolsToggle: document.getElementById('btn-tools-toggle'),
 
-    // If empty, return current URL or default
-    if (!input) {
-        return elements.webview.src || 'https://www.google.com';
-    }
-
-    // If already a valid URL, return as-is
-    if (isValidUrl(input)) {
-        return input;
-    }
-
-    // If looks like a domain (contains dot, no spaces)
-    if (input.includes('.') && !input.includes(' ')) {
-        return 'https://' + input;
-    }
-
-    // Otherwise, treat as a search query
-    return 'https://www.google.com/search?q=' + encodeURIComponent(input);
-}
+    // Productivity
+    clipboardList: document.getElementById('clipboard-list'),
+    notesArea: document.getElementById('notes-area'),
+    sessionList: document.getElementById('session-list')
+};
 
 // ============================================
-// NAVIGATION FUNCTIONS
-// Core browser navigation functionality
+// TAB MANAGER
+// Handles creation/deletion/switching of tabs
 // ============================================
 
-/**
- * Navigate to a URL
- * @param {string} url - The URL to navigate to
- */
+const TabManager = {
+    /**
+     * Create a new tab and its webview
+     */
+    createTab: (url = 'https://www.google.com', activate = true) => {
+        const tabId = 'tab-' + Date.now();
+        const tabData = { id: tabId, url, title: 'New Tab', isLoading: true };
+        state.tabs.push(tabData);
+
+        // 1. Create Tab Button in UI
+        const tabEl = document.createElement('div');
+        tabEl.className = 'tab';
+        tabEl.id = `btn-${tabId}`;
+        tabEl.innerHTML = `
+            <span class="tab-title">New Tab</span>
+            <button class="tab-close" title="Close Tab">×</button>
+        `;
+
+        tabEl.addEventListener('click', () => TabManager.switchTab(tabId));
+        tabEl.querySelector('.tab-close').addEventListener('click', (e) => {
+            e.stopPropagation();
+            TabManager.closeTab(tabId);
+        });
+
+        elements.tabBar.appendChild(tabEl);
+
+        // 2. Create Webview
+        const viewEl = document.createElement('webview');
+        viewEl.id = `view-${tabId}`;
+        viewEl.className = 'webview';
+        viewEl.src = url;
+        viewEl.setAttribute('allowpopups', '');
+        viewEl.setAttribute('plugins', '');
+        viewEl.setAttribute('webpreferences', 'allowRunningInsecureContent=true');
+
+        // Attach Webview Events
+        viewEl.addEventListener('did-start-loading', () => TabManager.updateLoading(tabId, true));
+        viewEl.addEventListener('did-stop-loading', () => TabManager.updateLoading(tabId, false));
+        viewEl.addEventListener('page-title-updated', (e) => TabManager.updateTitle(tabId, e.title));
+        viewEl.addEventListener('did-navigate', (e) => TabManager.updateUrl(tabId, e.url));
+        viewEl.addEventListener('did-navigate-in-page', (e) => TabManager.updateUrl(tabId, e.url));
+        viewEl.addEventListener('new-window', (e) => TabManager.createTab(e.url));
+
+        elements.viewsContainer.appendChild(viewEl);
+
+        if (activate) TabManager.switchTab(tabId);
+        return tabId;
+    },
+
+    /**
+     * Switch to a specific tab
+     */
+    switchTab: (tabId) => {
+        state.activeTabId = tabId;
+
+        // Update UI Tabs
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(`btn-${tabId}`).classList.add('active');
+
+        // Update Webviews (Show active, hide others)
+        document.querySelectorAll('webview').forEach(v => {
+            v.style.display = (v.id === `view-${tabId}`) ? 'flex' : 'none';
+        });
+
+        const activeWebview = TabManager.getActiveWebview();
+        if (activeWebview) {
+            elements.urlInput.value = activeWebview.getURL();
+            updateNavigationButtons();
+        }
+
+        // Handle Split View visibility
+        if (state.isSplitView && state.splitTabId) {
+            const splitView = document.getElementById(`view-${state.splitTabId}`);
+            if (splitView) splitView.style.display = 'flex';
+        }
+    },
+
+    /**
+     * Close a tab
+     */
+    closeTab: (tabId) => {
+        if (state.tabs.length <= 1) return; // Don't close last tab
+
+        const index = state.tabs.findIndex(t => t.id === tabId);
+        state.tabs.splice(index, 1);
+
+        document.getElementById(`btn-${tabId}`).remove();
+        document.getElementById(`view-${tabId}`).remove();
+
+        // Switch to neighbor if closed tab was active
+        if (state.activeTabId === tabId) {
+            const nextTab = state.tabs[index] || state.tabs[index - 1];
+            TabManager.switchTab(nextTab.id);
+        }
+    },
+
+    /**
+     * Get the webview of the currently active tab
+     */
+    getActiveWebview: () => {
+        return document.getElementById(`view-${state.activeTabId}`);
+    },
+
+    updateLoading: (tabId, isLoading) => {
+        if (tabId === state.activeTabId) {
+            if (isLoading) {
+                elements.loadingBar.classList.add('loading');
+                elements.loadingBar.classList.remove('complete');
+            } else {
+                elements.loadingBar.classList.remove('loading');
+                elements.loadingBar.classList.add('complete');
+                setTimeout(() => elements.loadingBar.classList.remove('complete'), 600);
+            }
+            updateNavigationButtons();
+        }
+    },
+
+    updateTitle: (tabId, title) => {
+        const tabEl = document.getElementById(`btn-${tabId}`);
+        if (tabEl) tabEl.querySelector('.tab-title').textContent = title || 'Untitled';
+        if (tabId === state.activeTabId) document.title = `${title} - Zy Browser`;
+    },
+
+    updateUrl: (tabId, url) => {
+        if (tabId === state.activeTabId) {
+            elements.urlInput.value = url;
+            updateNavigationButtons();
+        }
+    }
+};
+
+// ============================================
+// SIDEBAR TOOLS (Productivity)
+// ============================================
+
+const SidebarManager = {
+    init: () => {
+        // Tab switching
+        elements.sidebarTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                elements.sidebarTabs.forEach(t => t.classList.remove('active'));
+                elements.toolViews.forEach(v => v.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(`view-${tab.dataset.view}`).classList.add('active');
+            });
+        });
+
+        // Toggle Sidebar
+        elements.btnToggleSidebar.addEventListener('click', () => {
+            state.isSidebarOpen = !state.isSidebarOpen;
+            elements.sidebar.classList.toggle('collapsed', !state.isSidebarOpen);
+        });
+
+        // Initialize Tools
+        SidebarManager.setupClipboard();
+        SidebarManager.setupNotes();
+        SidebarManager.setupSessions();
+    },
+
+    setupClipboard: () => {
+        // In a real app, listen to 'clipboard-read' ipc
+        // For demo: Mock functionality or simple text monitoring
+        setInterval(async () => {
+            try {
+                // Poll clipboard logic if supported by API
+            } catch (e) { }
+        }, 1000);
+
+        document.getElementById('btn-clear-clipboard').addEventListener('click', () => {
+            elements.clipboardList.innerHTML = '';
+        });
+    },
+
+    setupNotes: () => {
+        // Load saved notes
+        const saved = localStorage.getItem('zy-notes');
+        if (saved) elements.notesArea.value = saved;
+
+        // Auto-save notes
+        elements.notesArea.addEventListener('input', (e) => {
+            localStorage.setItem('zy-notes', e.target.value);
+        });
+    },
+
+    setupSessions: () => {
+        const loadSessions = () => {
+            const sessions = JSON.parse(localStorage.getItem('zy-sessions') || '[]');
+            elements.sessionList.innerHTML = sessions.map((s, i) => `
+                <li class="list-item">
+                    <span>${s.date} (${s.count} tabs)</span>
+                    <button class="text-btn" onclick="restoreSession(${i})">Load</button>
+                </li>
+            `).join('');
+        };
+
+        document.getElementById('btn-save-session').addEventListener('click', () => {
+            const session = {
+                date: new Date().toLocaleTimeString(),
+                count: state.tabs.length,
+                urls: state.tabs.map(t => document.getElementById(`view-${t.id}`).src)
+            };
+            const sessions = JSON.parse(localStorage.getItem('zy-sessions') || '[]');
+            sessions.push(session);
+            localStorage.setItem('zy-sessions', JSON.stringify(sessions));
+            loadSessions();
+        });
+
+        loadSessions();
+    }
+};
+
+// ============================================
+// NAVIGATION & UI HELPERS
+// ============================================
+
 function navigateTo(url) {
-    const formattedUrl = formatUrl(url);
-    elements.webview.src = formattedUrl;
+    const webview = TabManager.getActiveWebview();
+    if (webview) webview.src = formatUrl(url);
 }
 
-/**
- * Go back in history
- */
-function goBack() {
-    if (elements.webview.canGoBack()) {
-        elements.webview.goBack();
-    }
-}
-
-/**
- * Go forward in history
- */
-function goForward() {
-    if (elements.webview.canGoForward()) {
-        elements.webview.goForward();
-    }
-}
-
-/**
- * Reload the current page
- */
 function reload() {
-    elements.webview.reload();
+    const webview = TabManager.getActiveWebview();
+    if (webview) webview.reload();
 }
 
-/**
- * Toggle developer tools for the webview
- */
-function toggleDevTools() {
-    if (state.isDevToolsOpen) {
-        elements.webview.closeDevTools();
-        state.isDevToolsOpen = false;
-        elements.btnDevTools.classList.remove('active');
-    } else {
-        elements.webview.openDevTools();
-        state.isDevToolsOpen = true;
-        elements.btnDevTools.classList.add('active');
-    }
+function goBack() {
+    const webview = TabManager.getActiveWebview();
+    if (webview && webview.canGoBack()) webview.goBack();
 }
 
-// ============================================
-// UI UPDATE FUNCTIONS
-// Functions that update the UI state
-// ============================================
+function goForward() {
+    const webview = TabManager.getActiveWebview();
+    if (webview && webview.canGoForward()) webview.goForward();
+}
 
-/**
- * Update the navigation button states (enabled/disabled)
- * Called after each navigation to reflect current state
- */
 function updateNavigationButtons() {
-    elements.btnBack.disabled = !elements.webview.canGoBack();
-    elements.btnForward.disabled = !elements.webview.canGoForward();
-}
-
-/**
- * Update the URL bar with the current page URL
- * @param {string} url - The URL to display
- */
-function updateUrlBar(url) {
-    // Only update if not focused (to not disrupt typing)
-    if (document.activeElement !== elements.urlInput) {
-        elements.urlInput.value = url;
+    const webview = TabManager.getActiveWebview();
+    if (webview) {
+        elements.btnBack.disabled = !webview.canGoBack();
+        elements.btnForward.disabled = !webview.canGoForward();
     }
 }
 
-/**
- * Show loading state
- */
-function showLoading() {
-    state.isLoading = true;
-    elements.loadingBar.classList.remove('complete');
-    elements.loadingBar.classList.add('loading');
-}
-
-/**
- * Hide loading state
- */
-function hideLoading() {
-    state.isLoading = false;
-    elements.loadingBar.classList.remove('loading');
-    elements.loadingBar.classList.add('complete');
-
-    // Reset after animation
-    setTimeout(() => {
-        elements.loadingBar.classList.remove('complete');
-    }, 600);
-}
-
-// ============================================
-// EVENT HANDLERS
-// Set up all event listeners
-// ============================================
-
-/**
- * Initialize all event handlers
- */
-function initializeEventHandlers() {
-    // --- Navigation Button Clicks ---
-
-    elements.btnBack.addEventListener('click', goBack);
-    elements.btnForward.addEventListener('click', goForward);
-    elements.btnReload.addEventListener('click', reload);
-    elements.btnDevTools.addEventListener('click', toggleDevTools);
-
-    // --- URL Bar Events ---
-
-    // Handle Enter key in URL bar
-    elements.urlInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            navigateTo(elements.urlInput.value);
-            elements.urlInput.blur(); // Remove focus after navigation
-        }
-
-        // Escape key clears focus
-        if (event.key === 'Escape') {
-            elements.urlInput.blur();
-            // Restore current URL
-            updateUrlBar(elements.webview.getURL());
-        }
-    });
-
-    // Select all text when clicking into URL bar
-    elements.urlInput.addEventListener('focus', () => {
-        elements.urlInput.select();
-    });
-
-    // --- Webview Events ---
-
-    // Page started loading
-    elements.webview.addEventListener('did-start-loading', () => {
-        showLoading();
-    });
-
-    // Page finished loading
-    elements.webview.addEventListener('did-stop-loading', () => {
-        hideLoading();
-        updateNavigationButtons();
-    });
-
-    // URL changed (handles redirects, link clicks, etc.)
-    elements.webview.addEventListener('did-navigate', (event) => {
-        updateUrlBar(event.url);
-        updateNavigationButtons();
-    });
-
-    // In-page navigation (anchors, pushState, etc.)
-    elements.webview.addEventListener('did-navigate-in-page', (event) => {
-        updateUrlBar(event.url);
-        updateNavigationButtons();
-    });
-
-    // Page title changed - update window title
-    elements.webview.addEventListener('page-title-updated', (event) => {
-        document.title = event.title ? `${event.title} - Zy` : 'Zy Browser';
-    });
-
-    // Handle new window requests (open in same webview)
-    elements.webview.addEventListener('new-window', (event) => {
-        // Navigate to the new URL instead of opening a new window
-        navigateTo(event.url);
-    });
-
-    // --- Keyboard Shortcuts ---
-
-    document.addEventListener('keydown', (event) => {
-        // Alt + Left Arrow: Go back
-        if (event.altKey && event.key === 'ArrowLeft') {
-            event.preventDefault();
-            goBack();
-        }
-
-        // Alt + Right Arrow: Go forward
-        if (event.altKey && event.key === 'ArrowRight') {
-            event.preventDefault();
-            goForward();
-        }
-
-        // Ctrl/Cmd + R: Reload
-        if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
-            event.preventDefault();
-            reload();
-        }
-
-        // F12: Toggle dev tools
-        if (event.key === 'F12') {
-            event.preventDefault();
-            toggleDevTools();
-        }
-
-        // Ctrl/Cmd + L: Focus URL bar
-        if ((event.ctrlKey || event.metaKey) && event.key === 'l') {
-            event.preventDefault();
-            elements.urlInput.focus();
-            elements.urlInput.select();
-        }
-
-        // F5: Reload (alternative)
-        if (event.key === 'F5') {
-            event.preventDefault();
-            reload();
-        }
-    });
+// URL Utilities
+function formatUrl(input) {
+    if (!input) return 'https://www.google.com';
+    let url = input.trim();
+    if (url.includes(' ') || !url.includes('.')) return 'https://www.google.com/search?q=' + encodeURIComponent(url);
+    if (!/^https?:\/\//i.test(url)) return 'https://' + url;
+    return url;
 }
 
 // ============================================
 // INITIALIZATION
-// Start the browser UI
 // ============================================
 
-/**
- * Initialize the browser UI
- * Called when the DOM is ready
- */
-function initialize() {
-    console.log('Zy Browser initializing...');
+document.addEventListener('DOMContentLoaded', () => {
+    // Event Listeners
+    elements.btnNewTab.addEventListener('click', () => TabManager.createTab());
+    elements.btnBack.addEventListener('click', goBack);
+    elements.btnForward.addEventListener('click', goForward);
+    elements.btnReload.addEventListener('click', reload);
 
-    // Set up event handlers
-    initializeEventHandlers();
-
-    // Initial state update
-    updateNavigationButtons();
-
-    // Wait for webview to be ready
-    elements.webview.addEventListener('dom-ready', () => {
-        console.log('Webview ready');
-        updateUrlBar(elements.webview.getURL());
+    elements.urlInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            navigateTo(e.target.value);
+            e.target.blur();
+        }
     });
 
-    console.log('Zy Browser initialized');
-}
+    elements.urlInput.addEventListener('focus', () => elements.urlInput.select());
 
-// Start when DOM is loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize);
-} else {
-    initialize();
-}
+    // Tools Toggle
+    elements.btnToolsToggle.addEventListener('click', () => {
+        elements.devPanel.style.display = elements.devPanel.style.display === 'none' ? 'flex' : 'none';
+    });
+
+    // Initialize Systems
+    SidebarManager.init();
+
+    // Create initial tab
+    TabManager.createTab('https://www.google.com');
+});

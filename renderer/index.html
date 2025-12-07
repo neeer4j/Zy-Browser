@@ -1,153 +1,188 @@
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-
-    <!-- Security: Prevent clickjacking and XSS -->
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        script-src 'self';
-        style-src 'self' 'unsafe-inline';
-    ">
-
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zy Browser</title>
-
-    <!-- Link to external stylesheet -->
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <!-- ============================================
-         NAVIGATION BAR
-         Contains all browser controls in a minimal layout
-         ============================================ -->
-    <nav class="navbar" id="navbar">
-        <!-- Navigation Buttons Group -->
-        <div class="nav-buttons">
-            <!-- Back Button: Navigate to previous page -->
-            <button class="nav-btn" id="btn-back" title="Go Back (Alt+←)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7" />
-                </svg>
-            </button>
+    <div class="app-layout">
 
-            <!-- Forward Button: Navigate to next page -->
-            <button class="nav-btn" id="btn-forward" title="Go Forward (Alt+→)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-            </button>
-
-            <!-- Reload Button: Refresh current page -->
-            <button class="nav-btn" id="btn-reload" title="Reload (Ctrl+R)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M23 4v6h-6M1 20v-6h6" />
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-                </svg>
-            </button>
-        </div>
-
-        <!-- URL Bar: Address input field -->
-        <div class="url-container">
-            <input type="text" id="url-input" class="url-input" placeholder="Enter URL or search..." spellcheck="false"
-                autocomplete="off">
-        </div>
-
-        <!-- Utility Buttons -->
-        <div class="util-buttons">
-            <!-- Dev Tools Toggle: Open/close developer console -->
-            <button class="nav-btn" id="btn-devtools" title="Developer Tools (F12)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="16 18 22 12 16 6" />
-                    <polyline points="8 6 2 12 8 18" />
-                </svg>
-            </button>
-        </div>
-    </nav>
-
-    <!-- ============================================
-         BROWSER CONTENT
-         Webview displays the actual web pages
-         ============================================ -->
-    <div class="browser-content" id="browser-content">
-        <!-- 
-            Webview: Electron's tag for embedding web content
-            - Runs in a separate process for security
-            - Supports full browser functionality
-            - Has its own navigation history
-        -->
-        <webview id="webview" src="https://www.google.com" allowpopups plugins
-            webpreferences="allowRunningInsecureContent=true"></webview>
-    </div>
-
-    <!-- ============================================
-         LOADING INDICATOR
-         Shows when a page is loading
-         ============================================ -->
-    <div class="loading-bar" id="loading-bar"></div>
-
-    <!-- ============================================
-         DEVELOPER PANEL (Hidden by default)
-         contains emulation tools, console, and metrics
-         ============================================ -->
-    <div class="dev-panel" id="dev-panel" style="display: none;">
-        <!-- Header / Toolbar -->
-        <div class="dev-toolbar">
-            <div class="dev-group">
-                <span class="dev-label">Device:</span>
-                <select id="dev-device-select" class="dev-select">
-                    <option value="responsive">Responsive (Default)</option>
-                    <option value="iphone-se">iPhone SE (375x667)</option>
-                    <option value="pixel-7">Pixel 7 (412x915)</option>
-                    <option value="ipad-air">iPad Air (820x1180)</option>
-                    <option value="desktop-hd">Desktop HD (1920x1080)</option>
-                </select>
-            </div>
-
-            <div class="dev-group">
-                <span class="dev-label">UA:</span>
-                <select id="dev-ua-select" class="dev-select">
-                    <option value="default">Default</option>
-                    <option value="mobile-ios">Mobile Safari (iOS)</option>
-                    <option value="mobile-android">Mobile Chrome (Android)</option>
-                    <option value="desktop-chrome">Desktop Chrome (Win)</option>
-                </select>
-            </div>
-
-            <div class="dev-divider"></div>
-
-            <div class="dev-group">
-                <button id="dev-btn-screenshot" class="dev-btn-icon" title="Capture Screenshot">
-                    📸 Snapshot
-                </button>
-                <button id="dev-btn-console" class="dev-btn-icon active" title="Toggle Console">
-                    💻 Console
+        <!-- SIDEBAR (Tools) -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Tools</h3>
+                <button id="btn-toggle-sidebar" class="icon-btn" title="Toggle Sidebar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 19l-7-7 7-7M19 12H5" />
+                    </svg>
                 </button>
             </div>
 
-            <div class="dev-spacer"></div>
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-view="clipboard" title="Clipboard History">📋</button>
+                <button class="sidebar-tab" data-view="notes" title="Quick Notes">📝</button>
+                <button class="sidebar-tab" data-view="sessions" title="Session Manager">💾</button>
+            </div>
 
-            <!-- Performance Metrics -->
-            <div class="dev-metrics">
-                <span id="metric-ram">RAM: -- MB</span>
-                <span id="metric-mem">Sys: -- GB</span>
+            <div class="sidebar-content">
+                <!-- Clipboard View -->
+                <div id="view-clipboard" class="tool-view active">
+                    <div class="view-header">
+                        <span>Clipboard</span>
+                        <button id="btn-clear-clipboard" class="text-btn">Clear</button>
+                    </div>
+                    <ul id="clipboard-list" class="item-list"></ul>
+                </div>
+
+                <!-- Notes View -->
+                <div id="view-notes" class="tool-view">
+                    <div class="view-header"><span>Quick Notes</span></div>
+                    <textarea id="notes-area" placeholder="Jot something down..."></textarea>
+                </div>
+
+                <!-- Sessions View -->
+                <div id="view-sessions" class="tool-view">
+                    <div class="view-header">
+                        <span>Saved Sessions</span>
+                        <button id="btn-save-session" class="text-btn">Save</button>
+                    </div>
+                    <ul id="session-list" class="item-list"></ul>
+                </div>
             </div>
         </div>
 
-        <!-- Console Drawer -->
-        <div class="dev-console" id="dev-console">
-            <div class="console-output" id="console-output">
-                <div class="log-entry system">Zy Developer Console ready...</div>
+        <!-- MAIN CONTENT COLUMN -->
+        <div class="main-column">
+
+            <!-- TOP BAR (Tabs + Nav) -->
+            <div class="top-bar">
+                <!-- TAB BAR -->
+                <div class="tab-bar-container">
+                    <div class="tab-scrubber" id="tab-bar">
+                        <!-- Tabs inserted here dynamically -->
+                    </div>
+                    <button id="btn-new-tab" class="tab-btn-add" title="New Tab (+)">+</button>
+                </div>
+
+                <!-- NAVIGATION BAR -->
+                <nav class="navbar" id="navbar">
+                    <div class="nav-buttons">
+                        <button class="nav-btn" id="btn-back" title="Go Back">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M19 12H5M12 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <button class="nav-btn" id="btn-forward" title="Go Forward">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                        <button class="nav-btn" id="btn-reload" title="Reload">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M23 4v6h-6M1 20v-6h6" />
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="url-container">
+                        <input type="text" id="url-input" class="url-input" placeholder="Enter URL or search..."
+                            spellcheck="false" autocomplete="off">
+                    </div>
+
+                    <div class="util-buttons">
+                        <button class="nav-btn" id="btn-split-view" title="Toggle Split View">
+                            ◫
+                        </button>
+                        <button class="nav-btn" id="btn-devtools" title="Developer Tools (F12)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="16 18 22 12 16 6" />
+                                <polyline points="8 6 2 12 8 18" />
+                            </svg>
+                        </button>
+                        <button class="nav-btn" id="btn-tools-toggle" title="Show Tools">
+                            🛠️
+                        </button>
+                    </div>
+                </nav>
             </div>
-            <div class="console-input-wrapper">
-                <span class="console-prompt">></span>
-                <input type="text" id="console-input" class="console-input" placeholder="Execute JavaScript...">
+
+            <!-- BROWSER CONTENT (Views) -->
+            <div class="browser-content" id="views-container">
+                <!-- Webviews inserted here dynamically -->
             </div>
+
+            <div class="loading-bar" id="loading-bar"></div>
+
+            <!-- DEVELOPER PANEL -->
+            <div class="dev-panel" id="dev-panel" style="display: none;">
+                <!-- Header / Toolbar -->
+                <div class="dev-toolbar">
+                    <div class="dev-group">
+                        <span class="dev-label">Device:</span>
+                        <select id="dev-device-select" class="dev-select">
+                            <option value="responsive">Responsive (Default)</option>
+                            <option value="iphone-se">iPhone SE (375x667)</option>
+                            <option value="pixel-7">Pixel 7 (412x915)</option>
+                            <option value="ipad-air">iPad Air (820x1180)</option>
+                            <option value="desktop-hd">Desktop HD (1920x1080)</option>
+                        </select>
+                    </div>
+
+                    <div class="dev-group">
+                        <span class="dev-label">UA:</span>
+                        <select id="dev-ua-select" class="dev-select">
+                            <option value="default">Default</option>
+                            <option value="mobile-ios">Mobile Safari (iOS)</option>
+                            <option value="mobile-android">Mobile Chrome (Android)</option>
+                            <option value="desktop-chrome">Desktop Chrome (Win)</option>
+                        </select>
+                    </div>
+
+                    <div class="dev-divider"></div>
+
+                    <div class="dev-group">
+                        <button id="dev-btn-screenshot" class="dev-btn-icon" title="Capture Screenshot">
+                            📸 Snapshot
+                        </button>
+                        <button id="dev-btn-console" class="dev-btn-icon active" title="Toggle Console">
+                            💻 Console
+                        </button>
+                    </div>
+
+                    <div class="dev-spacer"></div>
+
+                    <!-- Performance Metrics -->
+                    <div class="dev-metrics">
+                        <span id="metric-ram">RAM: -- MB</span>
+                        <span id="metric-mem">Sys: -- GB</span>
+                    </div>
+                </div>
+
+                <!-- Console Drawer -->
+                <div class="dev-console" id="dev-console">
+                    <div class="console-output" id="console-output">
+                        <div class="log-entry system">Zy Developer Console ready...</div>
+                    </div>
+                    <div class="console-input-wrapper">
+                        <span class="console-prompt">></span>
+                        <input type="text" id="console-input" class="console-input" placeholder="Execute JavaScript...">
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-
-    <!-- Load the renderer JavaScript -->
     <script src="renderer.js"></script>
 </body>
 

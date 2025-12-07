@@ -1,73 +1,33 @@
 /**
  * Zy Browser - Styles
- * 
- * Minimal, clean styling for the browser interface.
- * Uses CSS custom properties (variables) for easy theming.
- * 
- * Design Philosophy:
- * - Dark theme for reduced eye strain
- * - Minimal shadows and effects for performance
- * - Clear visual hierarchy
- * - Responsive and accessible
+ * Multi-Tab & Productivity Edition
  */
 
 /* ============================================
    CSS VARIABLES (THEME)
-   Customize these to change the browser's look
    ============================================ */
 :root {
-    /* Primary colors */
     --bg-primary: #1a1a2e;
-    /* Main background */
     --bg-secondary: #16213e;
-    /* Navbar background */
     --bg-tertiary: #0f0f1a;
-    /* Input background */
-
-    /* Accent colors */
     --accent-primary: #7c3aed;
-    /* Primary accent (purple) */
     --accent-hover: #8b5cf6;
-    /* Hover state */
-    --accent-active: #6d28d9;
-    /* Active/pressed state */
-
-    /* Text colors */
     --text-primary: #e2e8f0;
-    /* Primary text */
     --text-secondary: #94a3b8;
-    /* Secondary/placeholder text */
     --text-muted: #64748b;
-    /* Muted text */
-
-    /* Border colors */
     --border-subtle: #2d2d44;
-    /* Subtle borders */
-    --border-focus: #7c3aed;
-    /* Focus state border */
-
-    /* Loading bar */
-    --loading-color: #7c3aed;
-
-    /* Spacing */
-    --navbar-height: 48px;
+    --navbar-height: 42px;
     --spacing-xs: 4px;
     --spacing-sm: 8px;
     --spacing-md: 12px;
-    --spacing-lg: 16px;
-
-    /* Border radius */
     --radius-sm: 4px;
     --radius-md: 8px;
-    --radius-lg: 12px;
-
-    /* Transitions */
     --transition-fast: 150ms ease;
     --transition-normal: 250ms ease;
 }
 
 /* ============================================
-   RESET & BASE STYLES
+   RESET & BASE
    ============================================ */
 * {
     margin: 0;
@@ -79,44 +39,306 @@ html,
 body {
     height: 100%;
     overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 14px;
     background-color: var(--bg-primary);
     color: var(--text-primary);
-
-    /* Prevent text selection in UI elements */
     user-select: none;
-    -webkit-user-select: none;
 }
 
 /* ============================================
-   NAVIGATION BAR
-   Fixed at top, contains all browser controls
+   APP LAYOUT (Sidebar + Main)
    ============================================ */
+.app-layout {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+.sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    transition: width var(--transition-normal), min-width var(--transition-normal);
+}
+
+.sidebar.collapsed {
+    width: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-md);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-tertiary);
+}
+
+.sidebar-header h3 {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.sidebar-tabs {
+    display: flex;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.sidebar-tab {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    transition: all var(--transition-fast);
+}
+
+.sidebar-tab:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.sidebar-tab.active {
+    background: var(--bg-primary);
+    color: var(--accent-primary);
+    border-bottom: 2px solid var(--accent-primary);
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.tool-view {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    padding: var(--spacing-md);
+}
+
+.tool-view.active {
+    display: flex;
+}
+
+.view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.text-btn {
+    background: none;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.text-btn:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
+.item-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    overflow-y: auto;
+    flex: 1;
+}
+
+.list-item {
+    background: var(--bg-tertiary);
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#notes-area {
+    flex: 1;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    padding: var(--spacing-md);
+    resize: none;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 13px;
+}
+
+#notes-area:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+/* ============================================
+   MAIN COLUMN
+   ============================================ */
+.main-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    position: relative;
+}
+
+/* ============================================
+   TOP BAR (Tabs + Navbar)
+   ============================================ */
+.top-bar {
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+/* TAB BAR */
+.tab-bar-container {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    padding: 4px 8px 0 8px;
+    background: #0a0a0f;
+    -webkit-app-region: drag;
+}
+
+.tab-scrubber {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.tab-scrubber::-webkit-scrollbar {
+    display: none;
+}
+
+.tab {
+    flex: 0 0 180px;
+    max-width: 200px;
+    height: 32px;
+    background: var(--bg-secondary);
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+    transition: background var(--transition-fast);
+    border: 1px solid transparent;
+    border-bottom: none;
+}
+
+.tab:hover {
+    background: #1e1e2e;
+}
+
+.tab.active {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-subtle);
+    border-top: 2px solid var(--accent-primary);
+}
+
+.tab-title {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tab-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    line-height: 1;
+}
+
+.tab-close:hover {
+    background: rgba(255, 100, 100, 0.2);
+    color: #ff6b6b;
+}
+
+.tab-btn-add {
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    -webkit-app-region: no-drag;
+}
+
+.tab-btn-add:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+/* NAVBAR */
 .navbar {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
     height: var(--navbar-height);
     padding: 0 var(--spacing-md);
-    background-color: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-subtle);
-
-    /* Allow dragging the window from navbar */
+    background: var(--bg-secondary);
     -webkit-app-region: drag;
 }
 
-/* ============================================
-   NAVIGATION BUTTONS
-   Back, Forward, Reload, Dev Tools
-   ============================================ */
 .nav-buttons,
 .util-buttons {
     display: flex;
     align-items: center;
     gap: var(--spacing-xs);
-
-    /* Exclude buttons from window drag */
     -webkit-app-region: no-drag;
 }
 
@@ -126,26 +348,18 @@ body {
     justify-content: center;
     width: 32px;
     height: 32px;
-    padding: 0;
-    background: transparent;
+    background: none;
     border: none;
     border-radius: var(--radius-sm);
     color: var(--text-secondary);
     cursor: pointer;
-    transition: all var(--transition-fast);
-
-    /* Exclude from window drag */
     -webkit-app-region: no-drag;
+    transition: all var(--transition-fast);
 }
 
 .nav-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
-}
-
-.nav-btn:active {
-    background-color: rgba(255, 255, 255, 0.05);
-    transform: scale(0.95);
 }
 
 .nav-btn:disabled {
@@ -153,31 +367,16 @@ body {
     cursor: not-allowed;
 }
 
-.nav-btn:disabled:hover {
-    background: transparent;
-    color: var(--text-secondary);
-}
-
-/* Active state for dev tools button when open */
 .nav-btn.active {
-    background-color: var(--accent-primary);
+    background: var(--accent-primary);
     color: white;
 }
 
-.nav-btn.active:hover {
-    background-color: var(--accent-hover);
-}
-
-/* ============================================
-   URL BAR
-   Centered, expandable input field
-   ============================================ */
+/* URL BAR */
 .url-container {
     flex: 1;
     min-width: 200px;
     max-width: 800px;
-
-    /* Exclude from window drag */
     -webkit-app-region: no-drag;
 }
 
@@ -185,63 +384,47 @@ body {
     width: 100%;
     height: 32px;
     padding: 0 var(--spacing-md);
-    background-color: var(--bg-tertiary);
+    background: var(--bg-tertiary);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     color: var(--text-primary);
     font-size: 13px;
-    font-family: inherit;
     outline: none;
-    transition: all var(--transition-fast);
-}
-
-.url-input::placeholder {
-    color: var(--text-muted);
-}
-
-.url-input:hover {
-    border-color: var(--text-muted);
 }
 
 .url-input:focus {
-    border-color: var(--border-focus);
-    background-color: var(--bg-primary);
-
-    /* Allow text selection when focused */
-    user-select: text;
-    -webkit-user-select: text;
+    border-color: var(--accent-primary);
+    background: var(--bg-primary);
 }
 
 /* ============================================
-   BROWSER CONTENT AREA
-   Contains the webview that displays pages
+   BROWSER CONTENT (Webviews)
    ============================================ */
 .browser-content {
-    height: calc(100vh - var(--navbar-height));
-    background-color: var(--bg-primary);
+    flex: 1;
+    position: relative;
+    background: #fff;
 }
 
-#webview {
+.webview {
     width: 100%;
     height: 100%;
     border: none;
-    background-color: white;
 }
 
 /* ============================================
    LOADING BAR
-   Animated bar that shows page load progress
    ============================================ */
 .loading-bar {
-    position: fixed;
-    top: var(--navbar-height);
+    position: absolute;
+    top: 0;
     left: 0;
     width: 0%;
-    height: 2px;
-    background: linear-gradient(90deg, var(--loading-color), var(--accent-hover));
-    transition: width 300ms ease;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-hover));
     z-index: 1000;
     opacity: 0;
+    transition: width 300ms ease;
 }
 
 .loading-bar.loading {
@@ -270,74 +453,24 @@ body {
 }
 
 /* ============================================
-   SCROLLBAR STYLING
-   Custom scrollbar for consistent appearance
+   DEV PANEL
    ============================================ */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg-tertiary);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--border-subtle);
-    border-radius: var(--radius-sm);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
-}
-
-/* ============================================
-   ACCESSIBILITY
-   Focus visible styles for keyboard navigation
-   ============================================ */
-.nav-btn:focus-visible,
-.url-input:focus-visible {
-    outline: 2px solid var(--accent-primary);
-    outline-offset: 2px;
-}
-
-/* ============================================
-   RESPONSIVE ADJUSTMENTS
-   Adapt layout for smaller windows
-   ============================================ */
-@media (max-width: 600px) {
-    .url-container {
-        min-width: 150px;
-    }
-
-    .url-input {
-        font-size: 12px;
-    }
-}
-
-/* ============================================
-   DEVELOPER PANEL STYLES
-   ============================================ */
-
-/* Main Container */
 .dev-panel {
-    position: fixed;
+    position: absolute;
     bottom: 0;
     left: 0;
-    width: 100%;
-    height: 300px;
-    background-color: #0f0f1a;
+    right: 0;
+    height: 280px;
+    background: var(--bg-tertiary);
     border-top: 2px solid var(--accent-primary);
     display: flex;
     flex-direction: column;
-    z-index: 2000;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 100;
 }
 
-/* Toolbar */
 .dev-toolbar {
-    height: 40px;
-    background-color: var(--bg-secondary);
+    height: 36px;
+    background: var(--bg-secondary);
     display: flex;
     align-items: center;
     padding: 0 var(--spacing-md);
@@ -362,38 +495,34 @@ body {
     background: var(--bg-primary);
     color: var(--text-primary);
     border: 1px solid var(--border-subtle);
-    padding: 2px 6px;
+    padding: 4px 8px;
     border-radius: var(--radius-sm);
     font-size: 12px;
-    outline: none;
 }
 
 .dev-divider {
     width: 1px;
     height: 20px;
-    background-color: var(--border-subtle);
+    background: var(--border-subtle);
 }
 
 .dev-btn-icon {
-    background: transparent;
+    background: none;
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 6px 10px;
     border-radius: var(--radius-sm);
     font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
 }
 
 .dev-btn-icon:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: white;
 }
 
 .dev-btn-icon.active {
-    background-color: rgba(124, 58, 237, 0.2);
+    background: rgba(124, 58, 237, 0.2);
     color: var(--accent-primary);
 }
 
@@ -404,17 +533,16 @@ body {
 .dev-metrics {
     display: flex;
     gap: var(--spacing-md);
-    font-family: 'Courier New', monospace;
+    font-family: 'Consolas', monospace;
     font-size: 12px;
     color: var(--accent-primary);
 }
 
-/* Console Drawer */
 .dev-console {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background-color: #0d0d12;
+    background: #0d0d12;
     overflow: hidden;
 }
 
@@ -422,16 +550,13 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: var(--spacing-sm);
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: 'Consolas', monospace;
     font-size: 12px;
 }
 
 .log-entry {
-    margin-bottom: 2px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     padding: 2px 0;
-    white-space: pre-wrap;
-    word-break: break-all;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .log-entry.system {
@@ -445,23 +570,19 @@ body {
 
 .log-entry.warn {
     color: #f59e0b;
-    background-color: rgba(245, 158, 11, 0.1);
+    background: rgba(245, 158, 11, 0.1);
 }
 
 .log-entry.error {
     color: #ef4444;
-    background-color: rgba(239, 68, 68, 0.1);
-}
-
-.log-entry.info {
-    color: #3b82f6;
+    background: rgba(239, 68, 68, 0.1);
 }
 
 .console-input-wrapper {
     display: flex;
     align-items: center;
     padding: var(--spacing-sm);
-    background-color: var(--bg-tertiary);
+    background: var(--bg-tertiary);
     border-top: 1px solid var(--border-subtle);
 }
 
@@ -473,24 +594,31 @@ body {
 
 .console-input {
     flex: 1;
-    background: transparent;
+    background: none;
     border: none;
     color: var(--text-primary);
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: 'Consolas', monospace;
     font-size: 12px;
     outline: none;
 }
 
-/* Emulation States */
-.browser-content.emulated {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #000;
-    padding: 20px;
+/* ============================================
+   SCROLLBARS
+   ============================================ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-.browser-content.emulated webview {
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-    border: 1px solid #333;
+::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
 }
