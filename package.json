@@ -29,7 +29,17 @@
         },
         "icon": "assets/zy.png",
         "win": {
-            "target": "nsis"
+            "target": "nsis",
+            "icon": "assets/zy.png"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": "always",
+            "createStartMenuShortcut": true,
+            "runAfterFinish": true,
+            "deleteAppDataOnUninstall": false,
+            "displayLanguageSelector": true
         },
         "mac": {
             "target": "dmg"
