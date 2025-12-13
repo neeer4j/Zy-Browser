@@ -451,6 +451,12 @@ body {
     color: var(--text-primary);
 }
 
+.nav-btn.star-filled {
+    color: #ffd700;
+    /* Gold color for active bookmark */
+}
+
+
 /* ============================================
    URL BAR (Clean Pill Shape)
    ============================================ */

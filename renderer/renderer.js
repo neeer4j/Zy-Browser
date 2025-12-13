@@ -117,6 +117,8 @@ const TabManager = {
         if (activeWebview) {
             elements.urlInput.value = activeWebview.getURL();
             updateNavigationButtons();
+            // Sync Bookmark Star
+            if (window.BookmarksManager) window.BookmarksManager.updateStarState();
         }
 
         // Handle Split View visibility
@@ -176,6 +178,8 @@ const TabManager = {
         if (tabId === state.activeTabId) {
             elements.urlInput.value = url;
             updateNavigationButtons();
+            // Sync Bookmark Star
+            if (window.BookmarksManager) window.BookmarksManager.updateStarState();
         }
     }
 };
@@ -406,10 +410,112 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Systems
     SidebarManager.init();
     CSSOverridesManager.init();
+    BookmarksManager.init();
 
     // Create initial tab
     TabManager.createTab();
 });
+
+// ============================================
+// BOOKMARKS MANAGER
+// ============================================
+
+const BookmarksManager = {
+    bookmarks: [],
+
+    init: () => {
+        // Load bookmarks
+        BookmarksManager.bookmarks = JSON.parse(localStorage.getItem('zy-bookmarks') || '[]');
+
+        // Render initial list
+        BookmarksManager.renderBookmarks();
+
+        // Star Toggle Button
+        document.getElementById('btn-bookmark-toggle').addEventListener('click', () => {
+            BookmarksManager.toggleCurrentPage();
+        });
+
+        // Clear Bookmarks Button
+        document.getElementById('btn-clear-bookmarks').addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all bookmarks?')) {
+                BookmarksManager.bookmarks = [];
+                BookmarksManager.save();
+                BookmarksManager.renderBookmarks();
+                BookmarksManager.updateStarState();
+            }
+        });
+
+        // Listen for tab switches/updates to update star state
+        // We hook into TabManager's updateUrl via aspect or direct call?
+        // For simplicity, let's just make TabManager call us.
+        // OR we just poll/check when needed. 
+        // Better: Update TabManager to call BookmarksManager.updateStarState();
+    },
+
+    save: () => {
+        localStorage.setItem('zy-bookmarks', JSON.stringify(BookmarksManager.bookmarks));
+    },
+
+    renderBookmarks: () => {
+        const list = document.getElementById('bookmarks-list');
+        list.innerHTML = BookmarksManager.bookmarks.map((b, i) => `
+            <li class="list-item" style="display: flex; justify-content: space-between; align-items: center;">
+                <span onclick="navigateTo('${b.url}')" style="cursor: pointer; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${b.title || b.url}</span>
+                <button class="text-btn" onclick="BookmarksManager.removeBookmark(${i})">×</button>
+            </li>
+        `).join('');
+    },
+
+    toggleCurrentPage: () => {
+        const webview = TabManager.getActiveWebview();
+        if (!webview) return;
+
+        const url = webview.getURL();
+        const title = webview.getTitle();
+
+        const index = BookmarksManager.bookmarks.findIndex(b => b.url === url);
+
+        if (index === -1) {
+            // Add bookmark
+            BookmarksManager.bookmarks.push({ url, title, date: Date.now() });
+        } else {
+            // Remove bookmark
+            BookmarksManager.bookmarks.splice(index, 1);
+        }
+
+        BookmarksManager.save();
+        BookmarksManager.renderBookmarks();
+        BookmarksManager.updateStarState();
+    },
+
+    removeBookmark: (index) => {
+        BookmarksManager.bookmarks.splice(index, 1);
+        BookmarksManager.save();
+        BookmarksManager.renderBookmarks();
+        BookmarksManager.updateStarState();
+    },
+
+    updateStarState: () => {
+        const webview = TabManager.getActiveWebview();
+        const btn = document.getElementById('btn-bookmark-toggle');
+
+        if (!webview || !btn) return;
+
+        const url = webview.getURL();
+        const isBookmarked = BookmarksManager.bookmarks.some(b => b.url === url);
+
+        if (isBookmarked) {
+            btn.classList.add('star-filled');
+            btn.textContent = '★'; // Filled star
+        } else {
+            btn.classList.remove('star-filled');
+            btn.textContent = '☆'; // Empty star
+        }
+    }
+};
+
+// Make it global for inline onclick handlers
+window.BookmarksManager = BookmarksManager;
 
 // ============================================
 // CSS OVERRIDES MANAGER
