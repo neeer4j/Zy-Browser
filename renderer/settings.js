@@ -73,7 +73,7 @@ function updateUI() {
     elements.hardwareAccel.checked = currentSettings.hardwareAcceleration;
 
     // Apply immediate visual effects (e.g. theme)
-    document.body.setAttribute('data-theme', currentSettings.theme);
+    document.documentElement.setAttribute('data-theme', currentSettings.theme);
 }
 
 /**

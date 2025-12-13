@@ -68,6 +68,7 @@
             letter-spacing: -3px;
             background: linear-gradient(180deg, #fff 20%, rgba(255, 255, 255, 0.7) 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             text-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
@@ -127,7 +128,6 @@
             align-items: center;
             text-decoration: none;
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            group: 'shortcut';
         }
 
         .shortcut:hover {
@@ -228,27 +228,40 @@
         </div>
 
         <!-- Shortcuts -->
-        <div class="shortcuts">
-            <a href="https://youtube.com" class="shortcut">
-                <div class="icon-box">📺</div>
-                <span class="shortcut-label">YouTube</span>
-            </a>
-            <a href="https://github.com" class="shortcut">
-                <div class="icon-box">💻</div>
-                <span class="shortcut-label">GitHub</span>
-            </a>
-            <a href="https://gmail.com" class="shortcut">
-                <div class="icon-box">📧</div>
-                <span class="shortcut-label">Gmail</span>
-            </a>
-            <a href="https://reddit.com" class="shortcut">
-                <div class="icon-box">💬</div>
-                <span class="shortcut-label">Reddit</span>
-            </a>
+        <div class="shortcuts" id="shortcuts-container">
+            <!-- Dynamic Content -->
         </div>
     </div>
 
     <script>
+        const shortcuts = [
+            { title: 'YouTube', url: 'https://youtube.com', domain: 'youtube.com' },
+            { title: 'GitHub', url: 'https://github.com', domain: 'github.com' },
+            { title: 'Gmail', url: 'https://mail.google.com', domain: 'gmail.com' },
+            { title: 'Reddit', url: 'https://reddit.com', domain: 'reddit.com' },
+            { title: 'Twitter', url: 'https://twitter.com', domain: 'twitter.com' },
+            { title: 'Amazon', url: 'https://amazon.com', domain: 'amazon.com' },
+            { title: 'Netflix', url: 'https://netflix.com', domain: 'netflix.com' },
+            { title: 'Wikipedia', url: 'https://wikipedia.org', domain: 'wikipedia.org' }
+        ];
+
+        const container = document.getElementById('shortcuts-container');
+
+        shortcuts.forEach(s => {
+            const a = document.createElement('a');
+            a.href = s.url;
+            a.className = 'shortcut';
+            a.innerHTML = `
+                <div class="icon-box">
+                    <img src="https://www.google.com/s2/favicons?domain=${s.domain}&sz=128" 
+                         style="width: 32px; height: 32px; object-fit: contain;" 
+                         onerror="this.style.display='none'">
+                </div>
+                <span class="shortcut-label">${s.title}</span>
+            `;
+            container.appendChild(a);
+        });
+
         // Clock & Greeting Logic
         function updateTime() {
             const now = new Date();

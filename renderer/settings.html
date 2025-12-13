@@ -197,14 +197,20 @@
         }
 
         select {
-            background-color: transparent;
-            color: var(--text-secondary);
-            border: none;
+            background-color: var(--bg-card);
+            /* Solid background */
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
             font-size: 13px;
             padding: 8px;
             cursor: pointer;
             outline: none;
             border-radius: 4px;
+        }
+
+        select option {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
         }
 
         select:hover {
