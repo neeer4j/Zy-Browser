@@ -448,6 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
     SidebarManager.init();
     CSSOverridesManager.init();
     BookmarksManager.init();
+    ShortcutManager.init();
 
     // Create initial tab
     TabManager.createTab();
@@ -692,5 +693,73 @@ const CSSOverridesManager = {
         // The CSS persists until page reload. For full removal, reload the page.
         // This is a limitation of the webview API.
         CSSOverridesManager.status.textContent = 'CSS will clear on reload';
+    }
+};
+
+// ============================================
+// SHORTCUT MANAGER
+// ============================================
+
+const ShortcutManager = {
+    init: () => {
+        window.addEventListener('keydown', (e) => {
+            // Check modifier keys based on platform if needed, but Ctrl is standard for most
+            const cmdOrCtrl = e.ctrlKey || e.metaKey;
+
+            // New Tab: Ctrl + T
+            if (cmdOrCtrl && e.key === 't') {
+                e.preventDefault(); // Prevent accidental browser interactions if any
+                TabManager.createTab();
+            }
+
+            // Close Tab: Ctrl + W
+            if (cmdOrCtrl && e.key === 'w') {
+                e.preventDefault();
+                TabManager.closeTab(state.activeTabId);
+            }
+
+            // Reload: Ctrl + R or F5
+            if ((cmdOrCtrl && e.key === 'r') || e.key === 'F5') {
+                e.preventDefault();
+                reload();
+            }
+
+            // Focus Address Bar: Ctrl + L or F6 or Alt + D
+            if ((cmdOrCtrl && e.key === 'l') || e.key === 'F6' || (e.altKey && e.key === 'd')) {
+                e.preventDefault();
+                elements.urlInput.focus();
+                elements.urlInput.select();
+            }
+
+            // Navigation: Alt + Left / Right
+            if (e.altKey && e.key === 'ArrowLeft') {
+                e.preventDefault();
+                goBack();
+            }
+            if (e.altKey && e.key === 'ArrowRight') {
+                e.preventDefault();
+                goForward();
+            }
+
+            // Tab Switching: Ctrl + Tab / Ctrl + Shift + Tab
+            if (cmdOrCtrl && e.key === 'Tab') {
+                // Determine direction
+                const direction = e.shiftKey ? -1 : 1;
+                e.preventDefault();
+
+                const currentIndex = state.tabs.findIndex(t => t.id === state.activeTabId);
+                let nextIndex = currentIndex + direction;
+
+                // Loop around
+                if (nextIndex >= state.tabs.length) nextIndex = 0;
+                if (nextIndex < 0) nextIndex = state.tabs.length - 1;
+
+                const nextTab = state.tabs[nextIndex];
+                if (nextTab) TabManager.switchTab(nextTab.id);
+            }
+
+            // Zoom In/Out (Basic implementation) - Webviews handle this naturally usually, 
+            // but we can enforce it if needed. For now let webview handle it if focused.
+        });
     }
 };
