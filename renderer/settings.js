@@ -120,7 +120,8 @@ function setupListeners() {
 function saveSettings() {
     localStorage.setItem('zy-settings', JSON.stringify(currentSettings));
 
-    // You might want to send this to the main process via IPC 
-    // if the main process needs to act on these settings immediately
-    // window.zyAPI.updateSettings(currentSettings); (Not strictly needed for this MVP unless main process logic depends on it)
+    // Notify main process to broadcast changes
+    if (window.zyAPI && window.zyAPI.updateSettings) {
+        window.zyAPI.updateSettings(currentSettings);
+    }
 }

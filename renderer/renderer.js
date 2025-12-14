@@ -307,6 +307,42 @@ function formatUrl(input) {
 }
 
 // ============================================
+// SETTINGS MANAGER
+// ============================================
+
+const SettingsManager = {
+    init: () => {
+        // Load settings from storage
+        SettingsManager.loadSettings();
+
+        // Listen for updates from other windows
+        if (window.zyAPI && window.zyAPI.onSettingsUpdated) {
+            window.zyAPI.onSettingsUpdated((settings) => {
+                SettingsManager.applySettings(settings);
+            });
+        }
+    },
+
+    loadSettings: () => {
+        const saved = localStorage.getItem('zy-settings');
+        if (saved) {
+            try {
+                const settings = JSON.parse(saved);
+                SettingsManager.applySettings(settings);
+            } catch (e) {
+                console.error('Failed to parse settings', e);
+            }
+        }
+    },
+
+    applySettings: (settings) => {
+        if (settings.theme) {
+            document.documentElement.setAttribute('data-theme', settings.theme);
+        }
+    }
+};
+
+// ============================================
 // INITIALIZATION
 // ============================================
 
@@ -408,6 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize Systems
+    SettingsManager.init();
     SidebarManager.init();
     CSSOverridesManager.init();
     BookmarksManager.init();

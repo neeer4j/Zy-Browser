@@ -45,6 +45,8 @@ contextBridge.exposeInMainWorld('zyAPI', {
      */
     openSettings: () => ipcRenderer.send('open-settings'),
 
+    updateSettings: (settings) => ipcRenderer.send('settings-changed', settings),
+
     /**
      * Settings Management
      * Listen for settings updates from main process
